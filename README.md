@@ -13,7 +13,7 @@ When you call that endpoint, you include a JSON body which contains one key 'doi
 }
 ```
 
-The endpoint then checks each DOI against the Unpaywall API and returns the results. 
+The endpoint then checks each DOI against the Unpaywall API and returns the results.
 
 For each DOI, it sends this request:
 
@@ -55,6 +55,21 @@ The API will be available at http://localhost:8000
 ## Endpoints
 
 - `GET /`: Returns a simple message `{"msg": "don't panic"}`
+- `POST /v2/dois`: Process a batch of DOIs and return data from the Unpaywall API
+  - Request body: JSON with a single key `dois` containing an array of DOI strings
+  - Maximum 1,000 DOIs per request
+  - Returns a JSON response with:
+    - `results`: Object containing the Unpaywall data for each DOI
+    - `total`: Total number of DOIs processed
+    - `success`: Number of successful DOI lookups
+    - `errors`: Number of failed DOI lookups
+
+### Example Request
+```bash
+curl -X POST https://unpaywall-simple-query-tool-c76bcdcacd9a.herokuapp.com/v2/dois \
+  -H "Content-Type: application/json" \
+  -d '{"dois": ["10.1371/journal.pone.0022647", "10.1371/journal.pone.0031296"]}'
+```
 
 ## API Documentation
 
@@ -76,11 +91,17 @@ heroku login
 heroku create your-app-name
 ```
 
-5. Deploy to Heroku
+5. Set the required environment variables
+```bash
+heroku config:set UNPAYWALL_API_ADMIN_KEY=your_admin_key_here
+```
+
+6. Deploy to Heroku
 ```bash
 git push heroku main
 ```
 
-6. Open the deployed app
+7. Open the deployed app
 ```bash
 heroku open
+```
