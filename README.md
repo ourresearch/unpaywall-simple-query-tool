@@ -18,14 +18,12 @@ The endpoint then checks each DOI against the Unpaywall API and returns the resu
 For each DOI, it sends this request:
 
 ```
-https://api.unpaywall.org/<DOI>?email=team@ourresearch.org&admin_key=<ADMIN_KEY>
+https://api.unpaywall.org/<DOI>?email=team@ourresearch.org
 ```
 
 It can run a maximum of 1,000 DOIs at a time.
 
 Because this is running on Heroku, it times out after 30 seconds. So we have to make API calls in parallel. The function maintains a thread pool, calling up to 100 requests at a time. 
-
-In the API call, we use the special `admin_key` argument to bypass any rate limiting. The value for the admin key is stored in an environmental variable called `UNPAYWALL_API_ADMIN_KEY`.
 
 ## Local Development
 
@@ -91,17 +89,11 @@ heroku login
 heroku create your-app-name
 ```
 
-5. Set the required environment variables
-```bash
-heroku config:set UNPAYWALL_API_ADMIN_KEY=your_admin_key_here
-```
-
-6. Deploy to Heroku
+5. Deploy to Heroku
 ```bash
 git push heroku main
 ```
 
-7. Open the deployed app
+6. Open the deployed app
 ```bash
 heroku open
-```

@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-UNPAYWALL_API_ADMIN_KEY = os.getenv("UNPAYWALL_API_ADMIN_KEY")
 UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL", "team@ourresearch.org")
 UNPAYWALL_API_BASE_URL = "https://api.unpaywall.org"
 MAX_DOIS_PER_REQUEST = 1000
@@ -52,8 +51,7 @@ async def fetch_doi_data(doi: str, client: httpx.AsyncClient) -> Dict[str, Any]:
     """Fetch data for a single DOI from the Unpaywall API."""
     url = f"{UNPAYWALL_API_BASE_URL}/{doi}"
     params = {
-        "email": UNPAYWALL_EMAIL,
-        "admin_key": UNPAYWALL_API_ADMIN_KEY
+        "email": UNPAYWALL_EMAIL
     }
     
     try:
@@ -90,12 +88,6 @@ async def process_dois(request: DoiRequest) -> Dict[str, Any]:
     This endpoint accepts a list of DOIs (maximum 1000) and queries the Unpaywall API 
     for each one in parallel, returning the results.
     """
-    if not UNPAYWALL_API_ADMIN_KEY:
-        raise HTTPException(
-            status_code=500,
-            detail="UNPAYWALL_API_ADMIN_KEY environment variable is not set"
-        )
-    
     # Create a semaphore to limit concurrent requests
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
     
