@@ -42,10 +42,36 @@ def test_api(dois: List[str]):
             json.dump(data, f, indent=2)
         print(f"\nFull response saved to {response_filename}")
         
+        # Save JSON lines to file
+        jsonl_filename = "api_response_1000_dois.jsonl"
+        with open(jsonl_filename, 'w') as f:
+            f.write(data.get('jsonl', ''))
+        print(f"JSON lines response saved to {jsonl_filename}")
+        
+        # Save CSV to file
+        csv_filename = "api_response_1000_dois.csv"
+        with open(csv_filename, 'w') as f:
+            f.write(data.get('csv', ''))
+        print(f"CSV response saved to {csv_filename}")
+        
         print(f"API call completed in {elapsed_time:.2f} seconds")
         print(f"Total DOIs: {data.get('total', 'N/A')}")
         print(f"Successful: {data.get('success', 'N/A')}")
         print(f"Errors: {data.get('errors', 'N/A')}")
+        
+        # Show sample of JSON lines format
+        if 'jsonl' in data and data['jsonl']:
+            first_jsonl_line = data['jsonl'].split('\n')[0] if data['jsonl'] else None
+            print("\nSample JSON line:")
+            print(f"{first_jsonl_line}\n")
+        
+        # Show sample of CSV format
+        if 'csv' in data and data['csv']:
+            csv_lines = data['csv'].split('\n')
+            print("Sample CSV (header + first row):")
+            for i, line in enumerate(csv_lines[:2]):  # Print header and first row only
+                print(line)
+            print()
         
         # Find and display error information
         if 'results' in data:
