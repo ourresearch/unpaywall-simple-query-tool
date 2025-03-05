@@ -32,15 +32,9 @@ class DoiRequest(BaseModel):
     dois: List[str] = Field(..., description="List of DOIs to query")
     
     @validator('dois')
-    def validate_dois(cls, dois):
+    def validate_dois_count(cls, dois):
         if len(dois) > MAX_DOIS_PER_REQUEST:
             raise ValueError(f"Maximum number of DOIs per request is {MAX_DOIS_PER_REQUEST}")
-        
-        # Basic DOI format validation
-        for doi in dois:
-            if not doi.startswith("10."):
-                raise ValueError(f"Invalid DOI format: {doi}")
-        
         return dois
 
 @app.get("/")
@@ -49,6 +43,14 @@ async def root():
 
 async def fetch_doi_data(doi: str, client: httpx.AsyncClient) -> Dict[str, Any]:
     """Fetch data for a single DOI from the Unpaywall API."""
+    # Validate DOI format
+    if not doi.startswith("10."):
+        return {
+            "doi": doi,
+            "error": "Invalid DOI format",
+            "message": "DOI must start with '10.'"
+        }
+    
     url = f"{UNPAYWALL_API_BASE_URL}/{doi}"
     params = {
         "email": UNPAYWALL_EMAIL
@@ -102,13 +104,22 @@ async def process_dois(request: DoiRequest) -> Dict[str, Any]:
     
     # Organize results by DOI
     doi_results = {}
+    error_results = {}  # New dictionary to store errors
+    
     for result in results:
         if "doi" in result:
             doi = result["doi"]
             doi_results[doi] = result
+            # If this is an error result, add to the error_results dictionary
+            if "error" in result:
+                error_results[doi] = {
+                    "error": result.get("error"),
+                    "message": result.get("message")
+                }
     
     return {
         "results": doi_results,
+        "errors_dict": error_results,  # New field with dictionary of errors
         "total": len(results),
         "success": len([r for r in results if "error" not in r]),
         "errors": len([r for r in results if "error" in r])
