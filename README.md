@@ -1,6 +1,31 @@
 # Unpaywall Simple Query Tool
 
-A simple API for the Unpaywall project. Currently provides a basic endpoint that returns a "don't panic" message.
+This is a simple wrapper around the Unpaywall API for people who don't want to use the REST interface. It only has one endpoint: `POST v2/dois` 
+
+When you call that endpoint, you include a JSON body which contains one key 'dois' which contains a list of DOIs. 
+
+```json
+{
+    "dois": [
+        "10.1371/journal.pone.0022647",
+        "10.1371/journal.pone.0031296"
+    ]
+}
+```
+
+The endpoint then checks each DOI against the Unpaywall API and returns the results. 
+
+For each DOI, it sends this request:
+
+```
+https://api.unpaywall.org/<DOI>?email=team@ourresearch.org&admin_key=<ADMIN_KEY>
+```
+
+It can run a maximum of 1,000 DOIs at a time.
+
+Because this is running on Heroku, it times out after 30 seconds. So we have to make API calls in parallel. The function maintains a thread pool, calling up to 100 requests at a time. 
+
+In the API call, we use the special `admin_key` argument to bypass any rate limiting. The value for the admin key is stored in an environmental variable called `UNPAYWALL_API_ADMIN_KEY`.
 
 ## Local Development
 
